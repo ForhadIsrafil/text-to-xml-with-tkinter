@@ -3,6 +3,7 @@ from tkinter import filedialog
 import pathlib
 import sys
 import glob
+import re
 
 
 def get_source_folder():
@@ -28,10 +29,12 @@ def generate_xml_file(source_file_path, file_name, destination_folder):
 
     parent_barcode = ''
     operator = ''
-    barcode = ''
+    # barcode = ''
     name = ''
     result = ''
     value = ''
+    #     circuit_index = ''
+
     childs_arr = []
     childs_dicts = {}
     for index, data in enumerate(lines):
@@ -46,7 +49,7 @@ def generate_xml_file(source_file_path, file_name, destination_folder):
 
             # generate xml
             df = pd.DataFrame(required_data[1:], columns=data.split('\t'))
-
+            # df.to_csv("data.csv", index=False)
             for idx, single_data in df.iterrows():
                 dict_data = single_data.to_dict()
                 if dict_data['Messwert'].startswith("PP"):
@@ -65,42 +68,51 @@ def generate_xml_file(source_file_path, file_name, destination_folder):
     # generate the xml string
     if len(childs_dicts) != 0:
         for separated_child in childs_dicts.values():
-            messurement_arr = []
-            for child in separated_child:
-                if len(child['Messwert']) > 15:
-                    barcode = child['Messwert']
+            if len(separated_child[0]['Messwert']) > 15:
+                barcode = separated_child[0]['Messwert']
+                circuit_index = re.sub("\D", "", separated_child[0]['Bezeichnung'])
+                print(barcode, circuit_index)
 
-                if child['Ergebnis'] == 'Gut':
-                    result = 'PASSED'
-                try:
-                    name = child["Bezeichnung"].split(' ')[1]
-                except Exception as e:
-                    name = child["Bezeichnung"]
+                # generate measurements
+                messurement_arr = []
+                for child in separated_child:
 
-                value = f"{child['Untergrenze']} {child['Messwert']} {child['Obergrenze']}"
+                    if child['Ergebnis'] == 'Gut':
+                        result = 'PASSED'
+                    try:
+                        name = child["Bezeichnung"].split(' ')[1]
+                    except Exception as e:
+                        name = child["Bezeichnung"]
 
-                if child['Ergebnis'] == 'Fehler':
-                    result = 'FAILED'
+                    value = f"{child['Untergrenze']} {child['Messwert']} {child['Obergrenze']}"
 
-                messurement_str = f"""<Measurement>
-                                        <Name>{name}</Name>
-                                        <Result>{result}</Result>
-                                        <Value>{value}</Value>
-                                        <Units/>
-                                        <LowerLimit/>
-                                        <UpperLimit/>
-                                        <FailDesc/>
-                                        <DateAndTime/>
-                                    </Measurement>"""
-                messurement_arr.append(messurement_str)
-            child_str = f"""<Child>
-                            <Barcode>{barcode}</Barcode>
-                            <Measurements>
-                                {"".join(messurement_arr)}
-                            </Measurements>
-                        </Child>\n"""
-            childs_arr.append(child_str)
+                    if child['Ergebnis'] == 'Fehler':
+                        result = 'FAILED'
 
+                    messurement_str = f"""<Measurement>
+                                            <Name>{name}</Name>
+                                            <Result>{result}</Result>
+                                            <Value>{value}</Value>
+                                            <Units/>
+                                            <LowerLimit/>
+                                            <UpperLimit/>
+                                            <FailDesc/>
+                                            <DateAndTime/>
+                                        </Measurement>"""
+
+                    messurement_arr.append(messurement_str)
+
+                # generate each child
+                child_str = f"""<Child>
+                                <Barcode>{barcode}</Barcode>
+                                <CircuitIndex>{circuit_index}</CircuitIndex>
+                                <Measurements>
+                                    {"".join(messurement_arr)}
+                                </Measurements>
+                            </Child>\n"""
+                childs_arr.append(child_str)
+
+        # build full xml data string for xml file
         childs = "".join(childs_arr)
         xml_str = (f"<?xml version='1.0' encoding='utf-8'?>\n"
                    f"<TestData>"
