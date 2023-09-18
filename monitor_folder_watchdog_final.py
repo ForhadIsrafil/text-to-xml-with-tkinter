@@ -21,7 +21,10 @@ def on_created(event):
     if event.event_type == 'created' and event.is_directory != True:
         # print(event.key)
         print("File created:", event.src_path)
-        shutil.copy(event.src_path, destination_folder)
+        try:
+            shutil.copy(event.src_path, destination_folder)
+        except Exception as e:
+            print(e)
 
 
 def on_modified(event):
