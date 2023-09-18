@@ -76,7 +76,6 @@ def generate_xml_file(source_file_path, file_name, destination_folder):
                 # generate measurements
                 messurement_arr = []
                 for child in separated_child:
-
                     if child['Ergebnis'] == 'Gut':
                         result = 'PASSED'
                     try:
