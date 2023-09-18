@@ -6,6 +6,14 @@ import pathlib
 import sys
 import shutil
 
+# folder monitor that only copy’s new files in a folder
+"""
+NOTE:
+- Make sure that the file is not in a read-only directory.
+- If the file is in a read-only directory, you can try copying the file to a different directory where you have permission to write.
+- If you are running the Python program as a non-administrative user, you can try running the program as an administrator. To do this, right-click on the Python script and select "Run as administrator".
+"""
+
 global destination_folder
 
 
@@ -58,12 +66,3 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         observer.stop()
         observer.join()
-
-# folder monitor that only copy’s new files in a folder
-
-"""
-NOTE:
-- Make sure that the file is not in a read-only directory.
-- If the file is in a read-only directory, you can try copying the file to a different directory where you have permission to write.
-- If you are running the Python program as a non-administrative user, you can try running the program as an administrator. To do this, right-click on the Python script and select "Run as administrator".
-"""
