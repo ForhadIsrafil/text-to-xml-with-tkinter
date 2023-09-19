@@ -1,3 +1,5 @@
+import time
+
 import pandas as pd
 from tkinter import filedialog
 import pathlib
@@ -71,7 +73,7 @@ def generate_xml_file(source_file_path, file_name, destination_folder):
             if len(separated_child[0]['Messwert']) > 15:
                 barcode = separated_child[0]['Messwert']
                 circuit_index = re.sub("\D", "", separated_child[0]['Bezeichnung'])
-                print(barcode, circuit_index)
+                # print(barcode, circuit_index)
 
                 # generate measurements
                 messurement_arr = []
@@ -125,16 +127,12 @@ def generate_xml_file(source_file_path, file_name, destination_folder):
             xml_file.write(xml_str)
 
 
-def main():
-    print("SELECT YOUR SOURCE FOLDER...")
-    source_folder = get_source_folder()
+def main(source_folder, destination_folder):
     text_files_paths = []
     for path in source_folder.iterdir():
         if path.is_file() and path.name.endswith(".txt"):
             text_files_paths.append(path)
-
-    print("SELECT YOUR DESTINATION FOLDER...")
-    destination_folder = get_destination_folder()
+    print(text_files_paths)
 
     for text_file_path in text_files_paths:
         file_name = text_file_path.name.replace('.txt', '')
@@ -146,4 +144,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    print("SELECT YOUR SOURCE FOLDER...")
+    source_folder = get_source_folder()
+
+    print("SELECT YOUR DESTINATION FOLDER...")
+    destination_folder = get_destination_folder()
+
+    while True:
+        main(source_folder, destination_folder)
+        time.sleep(10)

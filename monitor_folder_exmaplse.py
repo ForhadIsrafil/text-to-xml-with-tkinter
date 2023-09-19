@@ -3,8 +3,8 @@ from tkinter import filedialog
 import pathlib
 import sys
 
-from watchdog.observers import Observer
-from watchdog.events import PatternMatchingEventHandler, FileSystemEventHandler
+from monitor_folder_exmaplse.observers import Observer
+from monitor_folder_exmaplse.events import PatternMatchingEventHandler, FileSystemEventHandler
 
 
 # folder monitor that only copy’s new files in a folder
