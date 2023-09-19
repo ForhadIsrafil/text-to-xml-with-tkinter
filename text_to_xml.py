@@ -24,7 +24,7 @@ def get_destination_folder():
     return pathlib.Path(folder)
 
 
-def generate_xml_file(source_file_path, file_name, destination_folder):
+def generate_xml_file(source_file_path, destination_folder):
     text_data = open(source_file_path).read()
 
     lines = text_data.strip().split('\n')
@@ -123,7 +123,7 @@ def generate_xml_file(source_file_path, file_name, destination_folder):
                    f"<Children>\n{childs}</Children>\n"
                    f"</TestData>")
 
-        with open(f'{destination_folder}/{file_name}.xml', "w") as xml_file:
+        with open(f'{destination_folder}/{parent_barcode}.xml', "w") as xml_file:
             xml_file.write(xml_str)
 
 
@@ -135,10 +135,9 @@ def main(source_folder, destination_folder):
     print(text_files_paths)
 
     for text_file_path in text_files_paths:
-        file_name = text_file_path.name.replace('.txt', '')
+        # file_name = text_file_path.name.replace('.txt', '')
         try:
-            generate_xml_file(source_file_path=text_file_path, file_name=file_name,
-                              destination_folder=destination_folder)
+            generate_xml_file(source_file_path=text_file_path, destination_folder=destination_folder)
         except Exception as e:
             print(e)
 
