@@ -1,5 +1,5 @@
+import os
 import time
-
 import pandas as pd
 from tkinter import filedialog
 import pathlib
@@ -24,8 +24,8 @@ def get_destination_folder():
     return pathlib.Path(folder)
 
 
-def generate_xml_file(source_file_path, destination_folder):
-    text_data = open(source_file_path).read()
+def generate_xml_file(text_file_path, destination_folder, source_folder):
+    text_data = open(text_file_path).read()
 
     lines = text_data.strip().split('\n')
 
@@ -126,6 +126,9 @@ def generate_xml_file(source_file_path, destination_folder):
         with open(f'{destination_folder}/{parent_barcode}.xml', "w") as xml_file:
             xml_file.write(xml_str)
 
+        # move text text file to the "processed_to_xml" folder
+        os.rename(text_file_path, source_folder / "processed_to_xml" / text_file_path.name)
+
 
 def main(source_folder, destination_folder):
     text_files_paths = []
@@ -137,14 +140,21 @@ def main(source_folder, destination_folder):
     for text_file_path in text_files_paths:
         # file_name = text_file_path.name.replace('.txt', '')
         try:
-            generate_xml_file(source_file_path=text_file_path, destination_folder=destination_folder)
+            generate_xml_file(text_file_path=text_file_path, destination_folder=destination_folder,
+                              source_folder=source_folder)
         except Exception as e:
             print(e)
 
 
 if __name__ == "__main__":
+
     print("SELECT YOUR SOURCE FOLDER...")
     source_folder = get_source_folder()
+
+    try:
+        os.mkdir(source_folder / "processed_to_xml")
+    except Exception as e:
+        pass
 
     print("SELECT YOUR DESTINATION FOLDER...")
     destination_folder = get_destination_folder()
