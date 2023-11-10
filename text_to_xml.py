@@ -55,7 +55,10 @@ def generate_xml_file(text_file_path, destination_folder, source_folder):
             for idx, single_data in df.iterrows():
                 dict_data = single_data.to_dict()
                 if dict_data['Messwert'].startswith("PP"):
-                    parent_barcode = dict_data['Messwert']
+                    if "B" in dict_data['Messwert']:
+                        parent_barcode = dict_data['Messwert'].replace("B", "T")
+                    else:
+                        parent_barcode = dict_data['Messwert']
 
                 if "Funktionstest/Laser_DMC" in dict_data['Modul']:
                     # print(dict_data)
