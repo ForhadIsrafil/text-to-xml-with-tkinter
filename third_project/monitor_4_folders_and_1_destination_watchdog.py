@@ -27,10 +27,6 @@ def on_created(event):
             print(e)
 
 
-# def on_modified(event):
-#     print("File modified:", event.src_path)
-
-
 def get_source_folder():
     folder = filedialog.askdirectory(mustexist=True, title="Select Source Folder")
     if not folder:
@@ -73,5 +69,8 @@ if __name__ == "__main__":
             time.sleep(1)
     except KeyboardInterrupt:
         for single_observer in observer_list:
+            # Stop observer if interrupted
             single_observer.stop()
+
+            # Wait until the thread terminates before exit
             single_observer.join()
