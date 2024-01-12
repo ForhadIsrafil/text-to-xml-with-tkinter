@@ -57,6 +57,7 @@ if __name__ == "__main__":
     files_event_handler.on_created = on_created
     # files_event_handler.on_modified = on_modified
 
+    print("Watching folders...")
     observer_list = []
     observer = Observer()
     for source_folder_path in source_folder_paths:
@@ -74,3 +75,5 @@ if __name__ == "__main__":
 
             # Wait until the thread terminates before exit
             single_observer.join()
+
+# pyinstaller --onefile --add-data "icon.png;." --icon="icon.png" monitor_4_folders_and_1_destination_watchdog.py
