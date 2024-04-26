@@ -14,19 +14,18 @@ destination_folder_text_box = ft.TextField("Destination Folder Path:", read_only
 
 status = Text("")
 
-pr = ft.ProgressRing(width=200, height=200, stroke_width=20)
+pr = ft.ProgressBar(width=500, border_radius=5, scale=5)
 pr.color = "#FF5733"
 pr.bgcolor = "#96DED1"
 
-
 def generate_csv():
-    # update status and progress view
-    status.value = ''
-    status.update()
-    pr.value = None
-    pr.update()
-
     for file_path in glob(file_path_text_box.value + "\*.trace"):
+        # update status and progress view
+        status.value = ''
+        status.update()
+        pr.value = None
+        pr.update()
+
         print('file:', file_path)
         file_name = os.path.basename(file_path).split('.')[0]
         # trace_folder_path = pathlib.Path(file_path_text_box.value)
@@ -40,15 +39,14 @@ def generate_csv():
                                     "@4|FLXPANELID", "@5|FLXSUBPANELID", "@6|FLXUID", "@7|Result"]
             df.to_csv(f"{destination_folder_text_box.value}\\{file_name}.csv", index=False)
             shutil.move(file_path, destination_folder_text_box.value)
+
+            pr.value = 100
+            pr.update()
+
+            status.value = file_name
+            status.update()
             time.sleep(1)
 
-            for i in range(1, 101):
-                pr.value = i
-                time.sleep(0.01)
-                pr.update()
-
-            status.value = 'Done!'
-            status.update()
         except Exception as e:
             status.value = str(e)
             status.update()
