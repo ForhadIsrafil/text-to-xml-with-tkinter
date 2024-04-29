@@ -92,6 +92,10 @@ def generate_csv():
             # status.value = str(e)
             # status.update()
 
+    file_path_text_box.value = None
+    file_path_text_box.data = None
+    file_path_text_box.update()
+
 
 def on_dialog_result(e: ft.FilePickerResultEvent):
     print("Selected folder:", e.path)
