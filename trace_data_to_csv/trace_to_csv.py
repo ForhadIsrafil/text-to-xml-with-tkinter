@@ -31,6 +31,33 @@ def generate_csv():
         status.value = ''
         status.color = None
         status.update()
+        return
+
+
+    if '\\' not in csv_destination_folder_text_box.value:
+        status.value = 'CSV Destination Folder Path Not Selected.'
+        status.color = "#FF5733"
+        status.size = 20
+        status.update()
+        time.sleep(3.5)
+
+        status.value = ''
+        status.color = None
+        status.update()
+        return
+
+    if '\\' not in trace_destination_folder_text_box.value:
+        status.value = 'Trace Destination Folder Path Not Selected.'
+        status.color = "#FF5733"
+        status.size = 20
+        status.update()
+        time.sleep(3.5)
+
+        status.value = ''
+        status.color = None
+        status.update()
+        return
+
 
     for file_path in glob(file_path_text_box.value + "\*.trace"):
         # update status and progress view
@@ -39,7 +66,7 @@ def generate_csv():
         pr.value = None
         pr.update()
 
-        print('file:', file_path)
+        # print('file:', file_path)
         file_name = os.path.basename(file_path).split('.')[0]
         # trace_folder_path = pathlib.Path(file_path_text_box.value)
         # destination_folder_path = pathlib.Path(destination_folder_text_box.value)
@@ -56,13 +83,14 @@ def generate_csv():
             pr.value = 100
             pr.update()
 
-            status.value = file_name
+            status.value = file_name+'[ Done!]'
             status.update()
             time.sleep(1)
 
         except Exception as e:
-            status.value = str(e)
-            status.update()
+            pass
+            # status.value = str(e)
+            # status.update()
 
 
 def on_dialog_result(e: ft.FilePickerResultEvent):
@@ -132,8 +160,8 @@ def home(page: ft.Page):
         ),
         Row(
             controls=[
-                trace_destination_folder_text_box,
-                trace_destination_folder,
+                csv_destination_folder_text_box,
+                csv_destination_folder,
 
             ],
             # spacing=5,
@@ -142,8 +170,8 @@ def home(page: ft.Page):
         ),
         Row(
             controls=[
-                csv_destination_folder_text_box,
-                csv_destination_folder,
+                trace_destination_folder_text_box,
+                trace_destination_folder,
 
             ],
             # spacing=5,
