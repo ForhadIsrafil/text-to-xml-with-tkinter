@@ -33,7 +33,6 @@ def generate_text():
         status.update()
         return
 
-
     if '\\' not in text_destination_folder_text_box.value:
         status.value = 'Text Destination Folder Path Not Selected.'
         status.color = "#FF5733"
@@ -57,7 +56,6 @@ def generate_text():
         status.color = None
         status.update()
         return
-
 
     for file_path in glob(file_path_text_box.value + "\*.trace"):
         # update status and progress view
@@ -83,18 +81,22 @@ def generate_text():
                 trace_data = trace_file.readlines()
 
             with open(f"{text_destination_folder_text_box.value}\\{file_name}.txt", 'w') as text_file:
-                all_lines = "".join(line for line in trace_data[8:])
+                all_lines = "".join(line for line in trace_data if "SVTL" not in line)
                 # print(all_lines)
                 text_file.write(all_lines.strip())
                 text_file.close()
 
-
             shutil.move(file_path, trace_destination_folder_text_box.value)
+
+            # remove the 4 lines that start with SVTL" and in the destination folder
+            removed_lines = "".join(line for line in trace_data if "SVTL" not in line)
+            with open(f"{trace_destination_folder_text_box.value}\\{file_name}.trace", 'w') as updated_trace_file:
+                file = updated_trace_file.write(removed_lines.strip())
 
             pr.value = 100
             pr.update()
 
-            status.value = file_name+'[ Done!]'
+            status.value = file_name + ' [Done!]'
             status.update()
             time.sleep(1)
 
@@ -161,7 +163,7 @@ def home(page: ft.Page):
     trace_destination_folder = ft.ElevatedButton("Trace Destination Folder",
                                                  on_click=lambda _: which_folder("trace_destination_folder"))
     text_destination_folder = ft.ElevatedButton("Text Destination Folder",
-                                               on_click=lambda _: which_folder("text_destination_folder"))
+                                                on_click=lambda _: which_folder("text_destination_folder"))
 
     page.add(
         Row(
@@ -196,7 +198,8 @@ def home(page: ft.Page):
         ),
         Row(
             controls=[
-                ft.IconButton(icon=ft.icons.PLAY_CIRCLE_OUTLINE_SHARP, on_click=lambda _: generate_text(), icon_size=40),
+                ft.IconButton(icon=ft.icons.PLAY_CIRCLE_OUTLINE_SHARP, on_click=lambda _: generate_text(),
+                              icon_size=40),
             ],
             # spacing=5,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
@@ -237,7 +240,12 @@ It will convert all files in a folders and will move the original file after pro
 and the converted file in C:\FLX_TXT_Generated.
 
 
+Needs to remove 4 lines and export is as .trace file again
+The lines with svtl
+Always 4 files
 
+
+the will be no data like @1 @2
 
 
 
