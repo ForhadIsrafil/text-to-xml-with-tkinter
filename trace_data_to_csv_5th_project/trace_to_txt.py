@@ -11,7 +11,7 @@ import os
 
 file_path_text_box = ft.TextField("Select Trace Folder Path(*.trace)", read_only=True, width=580)
 trace_destination_folder_text_box = ft.TextField("Trace Destination Folder Path", read_only=True, width=580)
-csv_destination_folder_text_box = ft.TextField("CSV Destination Folder Path", read_only=True, width=580)
+text_destination_folder_text_box = ft.TextField("Text Destination Folder Path", read_only=True, width=580)
 
 status = Text("")
 
@@ -20,7 +20,7 @@ pr.color = "#FF5733"
 pr.bgcolor = "#96DED1"
 
 
-def generate_csv():
+def generate_text():
     if len(glob(file_path_text_box.value + "\*.trace")) == 0:
         status.value = "No trace files found/directoy not selected."
         status.color = "#FF5733"
@@ -34,8 +34,8 @@ def generate_csv():
         return
 
 
-    if '\\' not in csv_destination_folder_text_box.value:
-        status.value = 'CSV Destination Folder Path Not Selected.'
+    if '\\' not in text_destination_folder_text_box.value:
+        status.value = 'Text Destination Folder Path Not Selected.'
         status.color = "#FF5733"
         status.size = 20
         status.update()
@@ -73,11 +73,22 @@ def generate_csv():
         # print(destination_folder_path)
         # print(trace_folder_path)
         try:
-            df = pd.read_csv(file_path, sep='|', )
-            df.columns = columns = ["@1|DateStamp (YYYY-MM-DD)", "@2|TimeStamp (hh:mm:ss) (24h system)",
-                                    "@3|MP (NLUD/SKVR/DRO/USPB)",
-                                    "@4|FLXPANELID", "@5|FLXSUBPANELID", "@6|FLXUID", "@7|Result"]
-            df.to_csv(f"{csv_destination_folder_text_box.value}\\{file_name}.csv", index=False)
+            # df = pd.read_csv(file_path, sep='|', )
+            # df.columns = columns = ["@1|DateStamp (YYYY-MM-DD)", "@2|TimeStamp (hh:mm:ss) (24h system)",
+            #                         "@3|MP (NLUD/SKVR/DRO/USPB)",
+            #                         "@4|FLXPANELID", "@5|FLXSUBPANELID", "@6|FLXUID", "@7|Result"]
+            # df.to_csv(f"{text_destination_folder_text_box.value}\\{file_name}.csv", index=False)
+
+            with open(file_path, 'r') as trace_file:
+                trace_data = trace_file.readlines()
+
+            with open(f"{text_destination_folder_text_box.value}\\{file_name}.txt", 'w') as text_file:
+                all_lines = "".join(line for line in trace_data[8:])
+                # print(all_lines)
+                text_file.write(all_lines.strip())
+                text_file.close()
+
+
             shutil.move(file_path, trace_destination_folder_text_box.value)
 
             pr.value = 100
@@ -112,13 +123,14 @@ def on_dialog_result(e: ft.FilePickerResultEvent):
         trace_destination_folder_text_box.data = None
         trace_destination_folder_text_box.update()
 
-    if csv_destination_folder_text_box.data == "csv_destination_folder":
-        csv_destination_folder_text_box.value = e.path
-        csv_destination_folder_text_box.data = None
-        csv_destination_folder_text_box.update()
+    if text_destination_folder_text_box.data == "text_destination_folder":
+        text_destination_folder_text_box.value = e.path
+        text_destination_folder_text_box.data = None
+        text_destination_folder_text_box.update()
 
 
 def home(page: ft.Page):
+    page.title = "Convert Trace File To Text File."
     page.window_width = 810
     page.window_height = 450
     page.window_resizable = False
@@ -139,17 +151,17 @@ def home(page: ft.Page):
             trace_destination_folder_text_box.update()
             file_picker.get_directory_path(dialog_title="Select Trace Destination Folder")
 
-        if folder_name == "csv_destination_folder":
-            csv_destination_folder_text_box.data = folder_name
-            csv_destination_folder_text_box.update()
-            file_picker.get_directory_path(dialog_title="Select CSV Destination Folder")
+        if folder_name == "text_destination_folder":
+            text_destination_folder_text_box.data = folder_name
+            text_destination_folder_text_box.update()
+            file_picker.get_directory_path(dialog_title="Select Text Destination Folder")
 
     choose_trace_folder = ft.ElevatedButton("Choose Trace Folder", on_click=lambda _: which_folder("trace_folder"), )
 
     trace_destination_folder = ft.ElevatedButton("Trace Destination Folder",
                                                  on_click=lambda _: which_folder("trace_destination_folder"))
-    csv_destination_folder = ft.ElevatedButton("CSV Destination Folder",
-                                               on_click=lambda _: which_folder("csv_destination_folder"))
+    text_destination_folder = ft.ElevatedButton("Text Destination Folder",
+                                               on_click=lambda _: which_folder("text_destination_folder"))
 
     page.add(
         Row(
@@ -164,8 +176,8 @@ def home(page: ft.Page):
         ),
         Row(
             controls=[
-                csv_destination_folder_text_box,
-                csv_destination_folder,
+                text_destination_folder_text_box,
+                text_destination_folder,
 
             ],
             # spacing=5,
@@ -184,7 +196,7 @@ def home(page: ft.Page):
         ),
         Row(
             controls=[
-                ft.IconButton(icon=ft.icons.PLAY_CIRCLE_OUTLINE_SHARP, on_click=lambda _: generate_csv(), icon_size=40),
+                ft.IconButton(icon=ft.icons.PLAY_CIRCLE_OUTLINE_SHARP, on_click=lambda _: generate_text(), icon_size=40),
             ],
             # spacing=5,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
@@ -218,38 +230,13 @@ def home(page: ft.Page):
 ft.app(target=home)
 
 """
-csv:
-after 10 boards column 5 changes from 1-1 to 1-2
-after again 10 boards it changes from 1-2 to 1-3
+one question, will the output file is a text file or a csv/excel file?
+ans: Text
 
-max 40 lines so it ends with 1-4
-
-
-at the moment i dont have more files but when you have it ready tomorrow i will have more files
-
-Will the converted csv save in the same folder where .trace file exist?
-
-no different folder
+It will convert all files in a folders and will move the original file after processing to C:\FLX_Trace_Processed
+and the converted file in C:\FLX_TXT_Generated.
 
 
-
-
-
------------------------------------------------------------------------------
-
-First question: can you also build software with a gui or do you prefer Python?
-
-We need again a watchdog.
-They need to select which kind of production.
-1) Default FLX Production.
-2) CM Production.
-
-when you select "Default FLX" it needs to copy from folder xxx to folder "C:\Trace_FLX".
-when you select "CM Production" it needs to copy from folder xxx to folder "C:\Trace_CM".
-
-The Default FLX option will just copy the .trace file to the other directory
-The CM Production need to copy to "C:\Trace_CM" and create also a .csv file 
-from it in a different format and place it in "C:\Trace_NF".
 
 
 
