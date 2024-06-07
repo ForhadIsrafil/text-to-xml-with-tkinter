@@ -7,6 +7,7 @@ __pycache__/
 *.xml
 *.exe
 *.png
+*.webp
 # C extensions
 *.so
 *.trace

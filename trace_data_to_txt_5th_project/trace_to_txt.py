@@ -75,14 +75,15 @@ def generate_text():
                 trace_data = trace_file.readlines()
 
             with open(f"{text_destination_folder_text_box.value}\\{file_name}.txt", 'w') as text_file:
-                removed_lines = "".join(line for line in trace_data if "SVTL" not in line)
+                all_lines = "".join(line for line in trace_data)
                 # print(all_lines)
-                text_file.write(removed_lines.strip())
+                text_file.write(all_lines.strip())
                 text_file.close()
 
             shutil.move(file_path, trace_destination_folder_text_box.value)
 
             # remove the 4 lines that start with SVTL" and in the destination folder
+            removed_lines = "".join(line for line in trace_data if "SVTL" not in line)
             with open(f"{trace_destination_folder_text_box.value}\\{file_name}.trace", 'w') as updated_trace_file:
                 file = updated_trace_file.write(removed_lines.strip())
 
