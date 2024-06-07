@@ -10,7 +10,7 @@ from datetime import datetime
 #     text_file.write(all_lines.strip())
 #     text_file.close()
 
-df = pd.read_csv('PVTL02242300000583 original input.txt', sep='|', header=None)
+df = pd.read_csv('PVTL02242300000583 original input.trace', sep='|', header=None)
 
 df.columns = [f'@{i}' for i in range(1, 9)]
 # panel-id
@@ -53,4 +53,4 @@ main_df['sub_panel_id'] = main_df['sub_panel_id'].str.strip()
 # main_df.to_csv('PVTL02242300000583_main.csv', index=False)
 main_df.to_csv('PVTL02242300000583_main.txt', sep="|", header=None, index=False)
 
-print(main_df.head(10), main_df.shape)
+# print(main_df.head(10), main_df.shape)

@@ -2,12 +2,14 @@ import time
 from tkinter import filedialog
 import pathlib
 import pandas as pd
+from datetime import datetime
 import shutil
 from glob import glob
 import flet as ft
 from flet import Text, Column, Row, Container, View, AppBar
 from flet import RouteChangeEvent, ViewPopEvent, MainAxisAlignment, CrossAxisAlignment
 import os
+pd.options.mode.chained_assignment = None  # Suppress the warning
 
 file_path_text_box = ft.TextField("Select Trace Folder Path(*.trace)", read_only=True, width=580)
 trace_destination_folder_text_box = ft.TextField("Trace Destination Folder Path", read_only=True, width=580)
@@ -71,21 +73,69 @@ def generate_text():
         # print(destination_folder_path)
         # print(trace_folder_path)
         try:
-            with open(file_path, 'r') as trace_file:
-                trace_data = trace_file.readlines()
+            # with open(file_path, 'r') as trace_file:
+            #     trace_data = trace_file.readlines()
+            #
+            # with open(f"{text_destination_folder_text_box.value}\\{file_name}.txt", 'w') as text_file:
+            #     all_lines = "".join(line for line in trace_data)
+            #     # print(all_lines)
+            #     text_file.write(all_lines.strip())
+            #     text_file.close()
+            #
+            # shutil.move(file_path, trace_destination_folder_text_box.value)
+            #
+            # # remove the 4 lines that start with SVTL" and in the destination folder
+            # removed_lines = "".join(line for line in trace_data if "SVTL" not in line)
+            # with open(f"{trace_destination_folder_text_box.value}\\{file_name}.trace", 'w') as updated_trace_file:
+            #     file = updated_trace_file.write(removed_lines.strip())
 
-            with open(f"{text_destination_folder_text_box.value}\\{file_name}.txt", 'w') as text_file:
-                all_lines = "".join(line for line in trace_data)
-                # print(all_lines)
-                text_file.write(all_lines.strip())
-                text_file.close()
+            df = pd.read_csv(file_path, sep='|', header=None)
 
-            shutil.move(file_path, trace_destination_folder_text_box.value)
+            df.columns = [f'@{i}' for i in range(1, 9)]
+            # panel-id
+            panel_id = df['@4'].iloc[0]
+            sub_panel_id = panel_id.replace('PV', 'SV')
+            # drop first two columns
+            df.drop(['@1', '@2'], axis=1, inplace=True)
 
-            # remove the 4 lines that start with SVTL" and in the destination folder
-            removed_lines = "".join(line for line in trace_data if "SVTL" not in line)
-            with open(f"{trace_destination_folder_text_box.value}\\{file_name}.trace", 'w') as updated_trace_file:
-                file = updated_trace_file.write(removed_lines.strip())
+            # separate column @3
+            df[['date', 'time']] = df['@3'].str.split(' ', expand=True)
+
+            # drop column @3
+            df.drop(['@3'], axis=1, inplace=True)
+
+            # correct of date
+            df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
+
+            # correct of time
+            df['time'] = pd.to_datetime(df['time'], format='%H%M%S').dt.time
+
+            # static value skvr
+            df['skvr'] = "SKVR"
+            df['panel-id'] = panel_id
+
+            # generate sub-panel-id
+            df['sub_panel_id'] = sub_panel_id
+
+            df2 = df[["date", "time", "skvr", "panel-id", "sub_panel_id", "@4", "@5", "@6", "@7",
+                      "@8"]]  # "@4" is circuit-id
+
+            # range the dataframe 1 to 40 number row
+            main_df = df2.iloc[1:41]
+
+            # update sub-panel-id
+            sub_panels = [[sub_panel_id + "-" + str(i) for g in range(10)] for i in [2, 4, 1, 3]]
+            sub_panel_list = str(sub_panels).replace('[', '').replace(']', '').replace("'", "")
+            # print(len(sub_panel_list.split(',')))
+            main_df['sub_panel_id'] = sub_panel_list.split(',')
+            main_df['sub_panel_id'] = main_df['sub_panel_id'].str.strip()
+
+            # move the trace file
+            # shutil.move(file_path, trace_destination_folder_text_box.value)
+
+            # save the new text file
+            main_df.to_csv(f"{text_destination_folder_text_box.value}\\{file_name}.trace", sep="|", header=None,
+                           index=False)
 
             pr.value = 100
             pr.update()
