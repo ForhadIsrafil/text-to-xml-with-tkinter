@@ -165,4 +165,4 @@ Always 4 files
 the will be no data like @1 @2
 """
 
-# pyinstaller --onefile --add-data "icon.png;." --icon="icon.png" monitor_4_folders_and_1_destination_watchdog.py
+# pyinstaller --onefile --add-data "icon.png;." --icon="icon.png" trace_to_txt_watchdog.py
