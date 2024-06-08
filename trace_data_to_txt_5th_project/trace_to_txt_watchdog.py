@@ -5,12 +5,71 @@ from tkinter import filedialog
 import pathlib
 import sys
 import shutil
+import pandas as pd
+from datetime import datetime
 
-global destination_folder
+pd.options.mode.chained_assignment = None
 
 
-def generate_txt():
-    pass
+# global destination_folder
+
+
+def generate_txt(trace_file_path, file_name):
+    df = pd.read_csv(pathlib.Path(trace_file_path), sep='|', header=None)
+
+    df.columns = [f'@{i}' for i in range(1, 9)]
+    # panel-id
+    panel_id = df['@4'].iloc[0]
+    sub_panel_id = panel_id.replace('PV', 'SV')
+    # drop first two columns
+    df.drop(['@1', '@2'], axis=1, inplace=True)
+
+    # separate column @3
+    df[['date', 'time']] = df['@3'].str.split(' ', expand=True)
+
+    # drop column @3
+    df.drop(['@3'], axis=1, inplace=True)
+
+    # correct of date
+    df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
+
+    # correct of time
+    df['time'] = pd.to_datetime(df['time'], format='%H%M%S').dt.time
+
+    # static value skvr
+    df['skvr'] = "SKVR"
+    df['panel-id'] = panel_id
+
+    # generate sub-panel-id
+    df['sub_panel_id'] = sub_panel_id
+
+    df2 = df[["date", "time", "skvr", "panel-id", "sub_panel_id", "@4", "@5", "@6", "@7", "@8"]]  # "@4" is circuit-id
+
+    # range the dataframe 1 to 40 number row
+    main_df = df2.iloc[1:41]
+
+    # update sub-panel-id
+    sub_panels = [[sub_panel_id + "-" + str(i) for g in range(10)] for i in [2, 4, 1, 3]]
+    sub_panel_list = str(sub_panels).replace('[', '').replace(']', '').replace("'", "")
+    # print(len(sub_panel_list.split(',')))
+    main_df['sub_panel_id'] = sub_panel_list.split(',')
+    main_df['sub_panel_id'] = main_df['sub_panel_id'].str.strip()
+
+    main_df.to_csv(f"C:\FLX_TXT_NedFlex\\{file_name.split('.')[0]}.txt", sep="|", header=None, index=False)
+
+    # ------------------------------------------------------------------------------
+    # Remove 4 lines start with SVTL and save trace file into C:\FLX_Xlink_Input
+    with open(pathlib.Path(trace_file_path), 'r') as trace_file:
+        trace_data = trace_file.readlines()
+
+    with open(f"C:\FLX_Xlink_Input\\{file_name.split('.')[0]}.trace", 'w') as new_trace_file:
+        all_lines = "".join(line for line in trace_data if "SVTL" not in line)
+        # print(all_lines)
+        new_trace_file.write(all_lines.strip())
+        new_trace_file.close()
+
+    # move the original input file to C:\FLX_Trace_Asys.
+    shutil.move(trace_file_path, "C:\FLX_Trace_Asys")
 
 
 def on_created(event):
@@ -19,7 +78,7 @@ def on_created(event):
         print("File created:", event.src_path)
         file_name = event.src_path.split('\\')[-1]
         if file_name.startswith("PVTL") or file_name.startswith("P-VTL"):
-            generate_txt()
+            generate_txt(event.src_path, file_name)
         else:
             print(f"File {file_name} moved to C:\FLX_Xlink_Input")
             shutil.move(src=event.src_path, dst="C:\FLX_Xlink_Input")
@@ -78,8 +137,16 @@ When its starts with PVTL or P-VTL it needs to convert it and save output of the
 and move the original input file to C:\FLX_Trace_Asys.
 When the filename start with a different value as PVTL or P-VTL it just needs to move the file to C:\FLX_Xlink_Input
 
+In case the file starts with PVTL or P-VTL we need to generate an additional file 
+what is a copy of the input .trace file but then only remove the SVTL Lines.
+That file needs to be saved also to C:\FLX_Xlink_Input
+
+only remove that 4 lines, SVTL Lines?
+yes.
+
 Will the folder paths always be same as you mentioned above?
 ans: yes.
+
 
 ---------------------------------------------------------------------------------------------------------------
 one question, will the output file is a text file or a csv/excel file?
