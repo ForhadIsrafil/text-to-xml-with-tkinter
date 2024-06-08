@@ -43,6 +43,7 @@ def generate_txt(trace_file_path, file_name):
     # generate sub-panel-id
     df['sub_panel_id'] = sub_panel_id
 
+    # Rearrange the columns
     df2 = df[["date", "time", "skvr", "panel-id", "sub_panel_id", "@4", "@5", "@6", "@7", "@8"]]  # "@4" is circuit-id
 
     # range the dataframe 1 to 40 number row
