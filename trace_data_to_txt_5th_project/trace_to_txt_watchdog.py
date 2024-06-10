@@ -15,62 +15,68 @@ pd.options.mode.chained_assignment = None
 
 
 def generate_txt(trace_file_path, file_name):
-    df = pd.read_csv(pathlib.Path(trace_file_path), sep='|', header=None)
+    try:
+        df = pd.read_csv(pathlib.Path(trace_file_path), sep='|', header=None, dtype=str)
 
-    df.columns = [f'@{i}' for i in range(1, 9)]
-    # panel-id
-    panel_id = df['@4'].iloc[0]
-    sub_panel_id = panel_id.replace('PV', 'SV')
-    # drop first two columns
-    df.drop(['@1', '@2'], axis=1, inplace=True)
+        df.columns = [f'@{i}' for i in range(1, 9)]
 
-    # separate column @3
-    df[['date', 'time']] = df['@3'].str.split(' ', expand=True)
+        # panel-id
+        panel_id = df['@4'].iloc[0]
+        sub_panel_id = panel_id.replace('PV', 'SV')
+        # drop first two columns
+        df.drop(['@1', '@2'], axis=1, inplace=True)
 
-    # drop column @3
-    df.drop(['@3'], axis=1, inplace=True)
+        # separate column @3
+        df[['date', 'time']] = df['@3'].str.split(' ', expand=True)
 
-    # correct of date
-    df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
+        # drop column @3
+        df.drop(['@3'], axis=1, inplace=True)
 
-    # correct of time
-    df['time'] = pd.to_datetime(df['time'], format='%H%M%S').dt.time
+        # correct of date
+        df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
 
-    # static value skvr
-    df['skvr'] = "SKVR"
-    df['panel-id'] = panel_id
+        # correct of time
+        df['time'] = pd.to_datetime(df['time'], format='%H%M%S').dt.time
 
-    # generate sub-panel-id
-    df['sub_panel_id'] = sub_panel_id
+        # static value skvr
+        df['skvr'] = "SKVR"
+        df['panel-id'] = panel_id
 
-    # Rearrange the columns
-    df2 = df[["date", "time", "skvr", "panel-id", "sub_panel_id", "@4", "@5", "@6", "@7", "@8"]]  # "@4" is circuit-id
+        # generate sub-panel-id
+        df['sub_panel_id'] = sub_panel_id
 
-    # range the dataframe 1 to 40 number row
-    main_df = df2.iloc[1:41]
+        # Rearrange the columns
+        df2 = df[
+            ["date", "time", "skvr", "panel-id", "sub_panel_id", "@4", "@5", "@6", "@7", "@8"]]  # "@4" is circuit-id
 
-    # update sub-panel-id
-    sub_panels = [[sub_panel_id + "-" + str(i) for g in range(10)] for i in [2, 4, 1, 3]]
-    sub_panel_list = str(sub_panels).replace('[', '').replace(']', '').replace("'", "")
-    # print(len(sub_panel_list.split(',')))
-    main_df['sub_panel_id'] = sub_panel_list.split(',')
-    main_df['sub_panel_id'] = main_df['sub_panel_id'].str.strip()
+        # range the dataframe 1 to 40 number row
+        main_df = df2.iloc[1:41]
 
-    main_df.to_csv(f"C:\FLX_TXT_NedFlex\\{file_name.split('.')[0]}.txt", sep="|", header=None, index=False)
+        # update sub-panel-id
+        sub_panels = [[sub_panel_id + "-" + str(i) for g in range(10)] for i in [2, 4, 1, 3]]
+        sub_panel_list = str(sub_panels).replace('[', '').replace(']', '').replace("'", "")
+        # print(len(sub_panel_list.split(',')))
+        main_df['sub_panel_id'] = sub_panel_list.split(',')
+        main_df['sub_panel_id'] = main_df['sub_panel_id'].str.strip()
 
-    # ------------------------------------------------------------------------------
-    # Remove 4 lines start with SVTL and save trace file into C:\FLX_Xlink_Input
-    with open(pathlib.Path(trace_file_path), 'r') as trace_file:
-        trace_data = trace_file.readlines()
+        main_df.to_csv(f"C:\FLX_TXT_NedFlex\\{file_name.split('.')[0]}.txt", sep="|", header=None, index=False)
 
-    with open(f"C:\FLX_Xlink_Input\\{file_name.split('.')[0]}.trace", 'w') as new_trace_file:
-        all_lines = "".join(line for line in trace_data if "SVTL" not in line)
-        # print(all_lines)
-        new_trace_file.write(all_lines.strip())
-        new_trace_file.close()
+        # ------------------------------------------------------------------------------
+        # Remove 4 lines start with SVTL and save trace file into C:\FLX_Xlink_Input
+        with open(pathlib.Path(trace_file_path), 'r') as trace_file:
+            trace_data = trace_file.readlines()
 
-    # move the original input file to C:\FLX_Trace_Asys.
-    shutil.move(trace_file_path, "C:\FLX_Trace_Asys")
+        with open(f"C:\FLX_Xlink_Input\\{file_name.split('.')[0]}.trace", 'w') as new_trace_file:
+            all_lines = "".join(line for line in trace_data if "SVTL" not in line)
+            # print(all_lines)
+            new_trace_file.write(all_lines.strip())
+            new_trace_file.close()
+
+        # move the original input file to C:\FLX_Trace_Asys.
+        shutil.move(trace_file_path, "C:\FLX_Trace_Asys")
+
+    except Exception as e:
+        print(e)
 
 
 def on_created(event):
