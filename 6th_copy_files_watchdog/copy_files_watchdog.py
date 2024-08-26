@@ -14,7 +14,7 @@ import shutil
 def on_created(event):
     if event.event_type == 'created' and event.is_directory != True:
         print("File created:", event.src_path)
-        destination_folder = r"\\10.42.230.101\NedFlex_FactoryLogix$\FLX-IN"
+        destination_folder = r"\\10.42.230.101\NedFlex_FactoryLogix$\FLX-OUT"
 
         try:
             shutil.copy(pathlib.Path(event.src_path), pathlib.Path(destination_folder))
